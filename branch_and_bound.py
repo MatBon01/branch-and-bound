@@ -1,4 +1,5 @@
 from collections import defaultdict
+import collections
 
 from graph import get_graph, get_node_data
 import queue
@@ -75,11 +76,10 @@ class Node:
             )
 
         return new_nodes
-    
+
     def greedy_branch(self) -> "Node":
         best_candidate: int = self.candidates[0]
         best_lower_bound = self.lower_bound + self.get_tardiness(best_candidate)
-
 
         for candidate in self.candidates[1:]:
             candidate_lower_bound = self.lower_bound + self.get_tardiness(candidate)
@@ -97,7 +97,6 @@ class Node:
                 new_candidates.append(graph_candidate)
 
         return Node(new_schedule, new_candidates, best_lower_bound, self.level + 1)
-    
 
     def __eq__(self, other: "Node") -> bool:  # type: ignore
         return self.lower_bound == other.lower_bound and self.level == other.level
@@ -114,7 +113,6 @@ class Node:
         )
 
 
-
 def generate_trial_solution(partial_solution: Node) -> Node:
     solution = partial_solution
 
@@ -123,46 +121,84 @@ def generate_trial_solution(partial_solution: Node) -> Node:
 
     return solution
 
-nodes = queue.PriorityQueue()
-nodes.put(Node([], exit_nodes))
 
-final_schedules = queue.PriorityQueue()
-iterations = 0
+def hu_algorithm(inverted_graph, exit_nodes) -> list[int]:
+    node_levels = { node: 1 for node in exit_nodes }
+    schedule = []
 
-while not nodes.empty() and iterations < 30000:
-    node = nodes.get()
+    current_level = 1
+    current_level_nodes = list(exit_nodes)
 
-    # Trial solution and achieves the lowest bounded solution
-    if node.terminated:
-        final_schedules.put(node)
-        break
+    while current_level_nodes:
+        new_level_nodes = []
 
-    print(f"Schedule: {node.schedule} Lower Bound: {node.lower_bound}")
-    for new_node in node.branch():
-        nodes.put(new_node)
+        for node in current_level_nodes: 
+            for parent in inverted_graph[node]:
+                node_levels[parent] = current_level + 1
+                new_level_nodes.append(parent)
+    
+        current_level_nodes = new_level_nodes
+        current_level += 1
+    
+    level_nodes = defaultdict(list)
 
-        # Adding a terminal nodes to the final solution incase we don't terminate 
-        # before the iterations limit
-        if new_node.terminated:
-            final_schedules.put(new_node)
+    for node, level in node_levels.items():
+        level_nodes[level].append(node)
+    
+    for level in range(max(node_levels.values()), 0, -1):
+        schedule += sorted(level_nodes[level])
 
-    iterations += 1
 
-optimal_node = None
+    return schedule
 
-if not final_schedules.empty():
-    optimal_node = final_schedules.get()
-else:
-    optimal_node = generate_trial_solution(nodes.get())
+def branch_and_bound() -> Node:
+    nodes = queue.PriorityQueue()
+    nodes.put(Node([], exit_nodes))
 
-with open("test.csv", "w") as f:
-    f.write(",".join(map(str, optimal_node.schedule)))
+    final_schedules = queue.PriorityQueue()
+    iterations = 0
 
-with open("out.txt", "w") as f:
-    f.writelines(
-        [
-            f"Final Schedule = {str(optimal_node.schedule)}\n",
-            f"Total tardiness = {optimal_node.lower_bound}\n",
-            f"Iterations = {iterations}\n",
-        ]
-    )
+    while not nodes.empty() and iterations < 30000:
+        node = nodes.get()
+
+        # Trial solution and achieves the lowest bounded solution
+        if node.terminated:
+            final_schedules.put(node)
+            break
+
+        print(f"Schedule: {node.schedule} Lower Bound: {node.lower_bound}")
+        for new_node in node.branch():
+            nodes.put(new_node)
+
+            # Adding a terminal nodes to the final solution incase we don't terminate
+            # before the iterations limit
+            if new_node.terminated:
+                final_schedules.put(new_node)
+
+        iterations += 1
+
+    optimal_node = None
+
+    if not final_schedules.empty():
+        optimal_node = final_schedules.get()
+    else:
+        optimal_node = generate_trial_solution(nodes.get())
+
+    return optimal_node, iterations
+
+
+# optimal_node, iterations = branch_and_bound()
+
+# with open("test.csv", "w") as f:
+#     f.write(",".join(map(str, optimal_node.schedule)))
+
+# with open("out.txt", "w") as f:
+#     f.writelines(
+#         [
+#             f"Final Schedule = {str(optimal_node.schedule)}\n",
+#             f"Total tardiness = {optimal_node.lower_bound}\n",
+#             f"Iterations = {iterations}\n",
+#         ]
+#     )
+
+print(hu_algorithm(inverted_graph, exit_nodes))
