@@ -75,34 +75,94 @@ class Node:
             )
 
         return new_nodes
+    
+    def greedy_branch(self) -> "Node":
+        best_candidate: int = self.candidates[0]
+        best_lower_bound = self.lower_bound + self.get_tardiness(best_candidate)
+
+
+        for candidate in self.candidates[1:]:
+            candidate_lower_bound = self.lower_bound + self.get_tardiness(candidate)
+            if candidate_lower_bound < best_lower_bound:
+                best_candidate = candidate
+                best_lower_bound = candidate_lower_bound
+
+        new_schedule = [best_candidate] + self.schedule
+        new_candidates = self.candidates.copy()
+        new_candidates.remove(best_candidate)
+
+        for graph_candidate in inverted_graph[best_candidate]:
+            children = graph[graph_candidate]
+            if all(child in new_schedule for child in children):
+                new_candidates.append(graph_candidate)
+
+        return Node(new_schedule, new_candidates, best_lower_bound, self.level + 1)
+    
 
     def __eq__(self, other: "Node") -> bool:  # type: ignore
         return self.lower_bound == other.lower_bound and self.level == other.level
 
     def __lt__(self, other: "Node") -> bool:
-        return (self.lower_bound < other.lower_bound and self.level >= other.level) or (
-            self.lower_bound <= other.lower_bound
-            and self.terminated
-            and not other.terminated
+        return (
+            self.lower_bound < other.lower_bound
+            or (
+                self.lower_bound <= other.lower_bound
+                and self.terminated
+                and not other.terminated
+            )
+            or (self.lower_bound <= other.lower_bound and self.level > other.level)
         )
 
+
+
+def generate_trial_solution(partial_solution: Node) -> Node:
+    solution = partial_solution
+
+    while not solution.terminated:
+        solution = solution.greedy_branch()
+
+    return solution
 
 nodes = queue.PriorityQueue()
 nodes.put(Node([], exit_nodes))
 
-final_schedule = []
+final_schedules = queue.PriorityQueue()
+iterations = 0
 
-while not nodes.empty():
+while not nodes.empty() and iterations < 30000:
     node = nodes.get()
+
+    # Trial solution and achieves the lowest bounded solution
     if node.terminated:
-        final_schedule = node.schedule
-        print(f"Final Schedule: {node.schedule} Value: {node.lower_bound}")
+        final_schedules.put(node)
         break
 
     print(f"Schedule: {node.schedule} Lower Bound: {node.lower_bound}")
     for new_node in node.branch():
         nodes.put(new_node)
 
-print(len(final_schedule))
+        # Adding a terminal nodes to the final solution incase we don't terminate 
+        # before the iterations limit
+        if new_node.terminated:
+            final_schedules.put(new_node)
+
+    iterations += 1
+
+optimal_node = None
+
+if not final_schedules.empty():
+    optimal_node = final_schedules.get()
+else:
+    optimal_node = generate_trial_solution(nodes.get())
+
 with open("test.csv", "w") as f:
-    f.write(','.join(map(str, final_schedule)))
+    f.write(",".join(map(str, optimal_node.schedule)))
+
+with open("out.txt", "w") as f:
+    f.writelines(
+        [
+            f"Final Schedule = {str(optimal_node.schedule)}\n",
+            f"Total tardiness = {optimal_node.lower_bound}\n",
+            f"Iterations = {iterations}\n",
+        ]
+    )
