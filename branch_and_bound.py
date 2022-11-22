@@ -76,13 +76,14 @@ def branch_and_bound(
 
     while not nodes.finished() and iterations < max_iterations:
         node, iterations_increment = nodes.next()
+        logging.debug(node)
 
         # Trial solution and achieves the lowest bounded solution
         if node.terminated:
+            logging.debug("Found a solution")
             final_schedules.put(node)
             break
 
-        logging.debug(node)
         for new_node in node.branch(brancher):
             nodes.put(new_node)
 
