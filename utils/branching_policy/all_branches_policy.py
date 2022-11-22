@@ -1,3 +1,5 @@
+import logging
+
 from ..bounding_policy.bounding_policy import BoundingPolicy
 from ..job_dependencies.graph import Job
 from ..job_dependencies.job_dependency_graph import JobDependencyGraph
@@ -7,6 +9,7 @@ from .branching_policy import BranchingPolicy
 
 class AllBranchesPolicy(BranchingPolicy):
     def __init__(self, jobs: JobDependencyGraph, bounding_policy: BoundingPolicy):
+        logging.info("Using AllBranches Branching Policy")
         self.jobs: JobDependencyGraph = jobs
         self.bounding_policy: BoundingPolicy = bounding_policy
 
