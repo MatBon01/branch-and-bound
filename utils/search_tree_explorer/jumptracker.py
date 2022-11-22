@@ -1,3 +1,4 @@
+import logging
 import queue
 
 from ..search_tree.search_tree_node import SearchTreeNode
@@ -6,6 +7,7 @@ from .search_tree_explorer import SearchTreeExplorer
 
 class JumpTracker(SearchTreeExplorer):
     def __init__(self):
+        logging.info("Using JumpTracker Search Tree Explorer")
         self.nodes: queue.PriorityQueue[SearchTreeNode] = queue.PriorityQueue()
         self.ITERATIONS_INCREMENT: int = 1
 

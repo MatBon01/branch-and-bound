@@ -43,6 +43,13 @@ class SearchTreeNode:
         )
 
     @property
+    def schedule_as_string(self) -> str:
+        return ",".join(map(str, self.schedule))
+
+    def __str__(self) -> str:
+        return f"Reverse schedule: {self.schedule_as_string} | Lower bound: {self.lower_bound}"
+
+    @property
     def candidates(self) -> list[Job]:
         return self._candidates.copy()
 
