@@ -1,5 +1,13 @@
 from collections import defaultdict
 
+from typing_extensions import TypeAlias
+
+Job: TypeAlias = int
+Schedule: TypeAlias = list[Job]
+
+JobGraph: TypeAlias = dict[Job, list[Job]]  # the edges of the job dependencies
+
+
 node_types = [
     "onnx",
     "muse",
@@ -120,15 +128,3 @@ links = [
 ]
 
 N = len(node_types)
-
-
-def get_graph() -> tuple[int, dict[int, list[int]]]:
-    graph: dict[int, list[int]] = defaultdict(list)
-    for u, v in links:
-        graph[u].append(v)
-
-    return N, graph
-
-
-def get_node_data() -> tuple[list[float], list[int]]:
-    return processing_times, due_times
