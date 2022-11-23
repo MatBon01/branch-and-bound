@@ -24,6 +24,10 @@ class DepthFirstSearch(SearchTreeExplorer):
         return node, self.ITERATIONS_INCREMENT
 
     def finished(self) -> bool:
-        return self.order.empty() or (
-            self.one_depth and self.last_node is not None and self.last_node.terminated
-        )
+        if self.order.empty():
+            logging.DEBUG("Finishing as no more possible nodes")
+            return True
+        if self.one_depth and self.last_node is not None and self.last_node.terminated:
+            logging.DEBUG("Finishing as one depth search and last node is terminal")
+            return True
+        return False

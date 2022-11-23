@@ -78,7 +78,7 @@ def branch_and_bound(
         if node.terminated:
             logging.debug("Found a solution")
             final_schedules.put(node)
-            break
+            continue
 
         for new_node in node.branch(brancher):
             nodes.put(new_node)
