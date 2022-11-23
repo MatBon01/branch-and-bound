@@ -6,10 +6,10 @@ from utils.bounding_policy.all_others_on_time_policy import AllOthersOnTimePolic
 from utils.bounding_policy.bounding_policy import BoundingPolicy
 from utils.branching_policy.all_branches_policy import AllBranchesPolicy
 from utils.branching_policy.branching_policy import BranchingPolicy
-from utils.branching_policy.greedy_depth_policy import GreedyDepthPolicy
 from utils.job_dependencies.graph import Job, JobGraph, Schedule
 from utils.job_dependencies.job_dependency_graph import JobDependencyGraph, get_graph
 from utils.search_tree.search_tree_node import SearchTreeNode
+from utils.search_tree_explorer.depth_first_search import DepthFirstSearch
 from utils.search_tree_explorer.jumptracker import JumpTracker
 from utils.search_tree_explorer.search_tree_explorer import SearchTreeExplorer
 
@@ -45,22 +45,18 @@ def setup_logging(
 
 
 def generate_trial_solution(
-    jobs: JobDependencyGraph, partial_solution: SearchTreeNode
+    jobs: JobDependencyGraph,
+    partial_solution: SearchTreeNode,
+    brancher: BranchingPolicy,
 ) -> SearchTreeNode:
     logging.info("Generating trial solution from partial solution")
-    solution = partial_solution
+    # Introduce depth first search to go straight to a solution
+    # Terminates as soon as a solution is found
+    search_tree_explorer: SearchTreeExplorer = DepthFirstSearch(one_depth=True)
 
-    greedy_brancher: GreedyDepthPolicy = GreedyDepthPolicy(
-        jobs, AllOthersOnTimePolicy()
-    )
+    solution, extra_iterations = branch_and_bound(jobs, search_tree_explorer, brancher)
 
-    while not solution.terminated:
-        logging.debug(solution)
-        solution = solution.branch(greedy_brancher)[0]
-
-    logging.debug(solution)
-
-    return solution
+    return solution, extra_iterations
 
 
 def branch_and_bound(
@@ -94,15 +90,20 @@ def branch_and_bound(
 
         iterations += iterations_increment
 
-    optimal_node = None
-
+    optimal_node: SearchTreeNode = None
     if not final_schedules.empty():
         optimal_node = final_schedules.get()
     else:
         logging.warning("No final schedules found")
-        optimal_node = generate_trial_solution(
-            jobs, nodes.next()[0]
-        )  # TODO:: next might not always be best so maybe extend api
+        best_node: SearchTreeNode
+        iterations_increment: int = 0
+        best_node, iterations_increment = nodes.next()
+        iterations += iterations_increment
+
+        optimal_node, iterations_increment = generate_trial_solution(
+            jobs, best_node, brancher
+        )
+        iterations += iterations_increment
 
     return optimal_node, iterations
 
