@@ -25,9 +25,9 @@ class DepthFirstSearch(SearchTreeExplorer):
 
     def finished(self) -> bool:
         if self.order.empty():
-            logging.DEBUG("Finishing as no more possible nodes")
+            logging.debug("Finishing as no more possible nodes")
             return True
         if self.one_depth and self.last_node is not None and self.last_node.terminated:
-            logging.DEBUG("Finishing as one depth search and last node is terminal")
+            logging.debug("Finishing as one depth search and last node is terminal")
             return True
         return False
