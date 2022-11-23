@@ -18,4 +18,14 @@ class JumpTracker(SearchTreeExplorer):
         return self.nodes.get(), self.ITERATIONS_INCREMENT
 
     def finished(self) -> bool:
-        return self.nodes.empty()
+        if self.nodes.empty():
+            logging.debug("Finishing as no more possible nodes")
+            return True
+        if self.nodes.queue[0].terminated:
+            logging.debug("Finishing as there are no better solutions")
+            return True
+        return False
+
+    def fathom(self, solution_time: int) -> bool:
+        # Add a node that indicates stopping by making it terminal
+        self.nodes.put(SearchTreeNode([], [], None, solution_time))

@@ -19,7 +19,6 @@ class SearchTreeNode:
         self._schedule_time: int = sum(
             map(lambda x: self._jobs[x].processing_time, self._schedule)
         )
-        self._terminated: bool = not candidates
 
     def get_tardiness(self, job: Job) -> float:
         end_time = self._jobs.total_time - self._schedule_time
@@ -29,15 +28,15 @@ class SearchTreeNode:
         return brancher.branch(self)
 
     def __eq__(self, other: "SearchTreeNode") -> bool:  # type: ignore
-        return self.lower_bound == other.lower_bound and self._level == other._level
+        return self.lower_bound == other.lower_bound and self.level == other.level
 
     def __lt__(self, other: "SearchTreeNode") -> bool:
         return (
             self.lower_bound < other.lower_bound
             or (
                 self.lower_bound <= other.lower_bound
-                and self._terminated
-                and not other._terminated
+                and self.terminated
+                and not other.terminated
             )
             or (self.lower_bound <= other.lower_bound and self._level > other._level)
         )
@@ -63,7 +62,7 @@ class SearchTreeNode:
 
     @property
     def terminated(self) -> bool:
-        return self._terminated
+        return not self._candidates
 
     @property
     def level(self) -> int:

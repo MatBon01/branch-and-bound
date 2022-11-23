@@ -68,27 +68,22 @@ def branch_and_bound(
     nodes.put(SearchTreeNode([], jobs.exit_nodes, jobs))
 
     final_schedules: queue.PriorityQueue[SearchTreeNode] = queue.PriorityQueue()
-    iterations: int = 0
+    iteration: int = 0
 
-    while not nodes.finished() and iterations < max_iterations:
+    while not nodes.finished() and iteration < max_iterations:
         node, iterations_increment = nodes.next()
-        logging.debug(node)
-
-        # Trial solution and achieves the lowest bounded solution
-        if node.terminated:
-            logging.debug("Found a solution")
-            final_schedules.put(node)
-            continue
+        logging.debug("Iteration: %d | %s", iteration, node)
 
         for new_node in node.branch(brancher):
-            nodes.put(new_node)
-
-            # Adding a terminal nodes to the final solution incase we don't terminate
-            # before the iterations limit
+            # If the node terminates then it is a solution
             if new_node.terminated:
+                logging.debug("Found a solution")
                 final_schedules.put(new_node)
+                nodes.fathom(node.lower_bound)
+            else:  # Do not put solutions into nodes
+                nodes.put(new_node)
 
-        iterations += iterations_increment
+        iteration += iterations_increment
 
     optimal_node: SearchTreeNode = None
     if not final_schedules.empty():
@@ -98,14 +93,14 @@ def branch_and_bound(
         best_node: SearchTreeNode
         iterations_increment: int = 0
         best_node, iterations_increment = nodes.next()
-        iterations += iterations_increment
+        iteration += iterations_increment
 
         optimal_node, iterations_increment = generate_trial_solution(
             jobs, best_node, brancher
         )
-        iterations += iterations_increment
+        iteration += iterations_increment
 
-    return optimal_node, iterations
+    return optimal_node, iteration
 
 
 if __name__ == "__main__":
