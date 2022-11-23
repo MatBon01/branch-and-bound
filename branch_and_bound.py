@@ -1,6 +1,7 @@
 import logging
 import queue
 import sys
+from typing import Optional
 
 from utils.bounding_policy.all_others_on_time_policy import AllOthersOnTimePolicy
 from utils.bounding_policy.bounding_policy import BoundingPolicy
@@ -49,7 +50,7 @@ def generate_solution_using_greedy_depth_first_search(
     partial_solution: SearchTreeNode,
     brancher: BranchingPolicy,
     current_iteration: int,
-) -> SearchTreeNode:
+) -> tuple[SearchTreeNode, int]:
     logging.info("Generating trial solution from partial solution")
     # Introduce depth first search to go straight to a solution
     # Terminates as soon as a solution is found
@@ -101,7 +102,6 @@ def branch_and_bound(
 
         iteration += iterations_increment
 
-    optimal_node: SearchTreeNode = None
     if not final_schedules.empty():
         optimal_node = final_schedules.get()
     else:

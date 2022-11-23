@@ -34,11 +34,11 @@ class SearchTreeNode:
         return (
             self.lower_bound < other.lower_bound
             or (
-                self.lower_bound <= other.lower_bound
+                self.lower_bound == other.lower_bound
                 and self.terminated
                 and not other.terminated
             )
-            or (self.lower_bound <= other.lower_bound and self._level > other._level)
+            or (self.lower_bound == other.lower_bound and self._level > other._level)
         )
 
     @property
@@ -46,7 +46,7 @@ class SearchTreeNode:
         return ",".join(map(str, self.schedule))
 
     def __str__(self) -> str:
-        return f"Reverse schedule: {self.schedule_as_string} | Lower bound: {self.lower_bound}"
+        return f"Schedule: {self.schedule_as_string} | Lower bound: {self.lower_bound}"
 
     @property
     def candidates(self) -> list[Job]:
