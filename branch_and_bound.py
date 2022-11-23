@@ -44,17 +44,26 @@ def setup_logging(
     )
 
 
-def generate_trial_solution(
+def generate_solution_using_greedy_depth_first_search(
     jobs: JobDependencyGraph,
     partial_solution: SearchTreeNode,
     brancher: BranchingPolicy,
+    current_iteration: int,
 ) -> SearchTreeNode:
     logging.info("Generating trial solution from partial solution")
     # Introduce depth first search to go straight to a solution
     # Terminates as soon as a solution is found
     search_tree_explorer: SearchTreeExplorer = DepthFirstSearch(one_depth=True)
+    search_tree_explorer.put(partial_solution)
 
-    solution, extra_iterations = branch_and_bound(jobs, search_tree_explorer, brancher)
+    solution, extra_iterations = branch_and_bound(
+        jobs,
+        search_tree_explorer,
+        brancher,
+        initial_nodes=[partial_solution],
+        initial_iterations=current_iteration,
+        max_iterations=current_iteration + jobs.size,
+    )
 
     return solution, extra_iterations
 
@@ -64,11 +73,18 @@ def branch_and_bound(
     nodes: SearchTreeExplorer,
     brancher: BranchingPolicy,
     max_iterations: int = 30000,
+    initial_iterations: int = 0,
+    initial_nodes: list[SearchTreeNode] = None,
 ) -> tuple[SearchTreeNode, int]:
-    nodes.put(SearchTreeNode([], jobs.exit_nodes, jobs))
+    if initial_nodes is None:
+        nodes.put(SearchTreeNode([], jobs.exit_nodes, jobs))
+    else:
+        node: SearchTreeNode
+        for node in initial_nodes:
+            nodes.put(node)
 
     final_schedules: queue.PriorityQueue[SearchTreeNode] = queue.PriorityQueue()
-    iteration: int = 0
+    iteration: int = initial_iterations
 
     while not nodes.finished() and iteration < max_iterations:
         node, iterations_increment = nodes.next()
@@ -95,10 +111,9 @@ def branch_and_bound(
         best_node, iterations_increment = nodes.next()
         iteration += iterations_increment
 
-        optimal_node, iterations_increment = generate_trial_solution(
-            jobs, best_node, brancher
+        optimal_node, iteration = generate_solution_using_greedy_depth_first_search(
+            jobs, best_node, brancher, iteration
         )
-        iteration += iterations_increment
 
     return optimal_node, iteration
 
