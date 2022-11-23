@@ -106,13 +106,8 @@ def branch_and_bound(
         optimal_node = final_schedules.get()
     else:
         logging.warning("No final schedules found")
-        best_node: SearchTreeNode
-        iterations_increment: int = 0
-        best_node, iterations_increment = nodes.next()
-        iteration += iterations_increment
-
         optimal_node, iteration = generate_solution_using_greedy_depth_first_search(
-            jobs, best_node, brancher, iteration
+            jobs, nodes.best(), brancher, iteration
         )
 
     return optimal_node, iteration

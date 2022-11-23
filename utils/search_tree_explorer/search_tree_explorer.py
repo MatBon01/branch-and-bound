@@ -14,5 +14,8 @@ class SearchTreeExplorer:
     def finished(self) -> bool:
         pass
 
-    def fathom(solution_time: int) -> None:
+    def fathom(self, solution_time: int) -> None:
+        pass
+
+    def best(self) -> SearchTreeNode:
         pass

@@ -29,3 +29,7 @@ class JumpTracker(SearchTreeExplorer):
     def fathom(self, solution_time: int) -> bool:
         # Add a node that indicates stopping by making it terminal
         self.nodes.put(SearchTreeNode([], [], None, solution_time))
+
+    def best(self) -> SearchTreeNode:
+        node, _ = self.next()
+        return node

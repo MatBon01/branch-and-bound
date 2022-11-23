@@ -50,3 +50,7 @@ class DepthFirstSearch(SearchTreeExplorer):
     def fathom(self, solution_time: int) -> None:
         if self.min_solution_time == -1 or solution_time < self.min_solution_time:
             self.min_solution_time = solution_time
+
+    def best(self) -> SearchTreeNode:
+        node, _ = self.next()
+        return node
