@@ -28,7 +28,7 @@ class JumpTracker(SearchTreeExplorer):
     def finished(self) -> bool:
         return self.nodes.empty()
 
-    def fathom(self, solution_time: int) -> bool:
+    def fathom(self, solution_time: int) -> None:
         # Add a node that indicates stopping by making it terminal
         count: int = 0
         new_queue: queue.PriorityQueue[
@@ -41,7 +41,7 @@ class JumpTracker(SearchTreeExplorer):
                 new_queue.put((heuristic, node))
             else:
                 count += 1
-        logging.debug("Fathomed &d nodes", count)
+        logging.debug("%d nodes removed by fathoming", count)
         self.nodes = new_queue
 
     def best(self) -> SearchTreeNode:
