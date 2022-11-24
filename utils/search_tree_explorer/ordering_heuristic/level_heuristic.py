@@ -11,7 +11,7 @@ class LevelHeuristic(OrderingHeuristic):
         self.level_modifier = level_modifier
 
     def potential(self, node: SearchTreeNode) -> float:
-        return self.level_modifier(node.level)
+        return node.lower_bound * self.level_modifier(node.level)
 
 
 def reciprocal(num: int) -> float:
