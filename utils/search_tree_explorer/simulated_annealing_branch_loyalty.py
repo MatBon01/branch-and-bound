@@ -76,9 +76,10 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
 
         self.temperature = heuristic_sum / count
 
-    def _initialise_new_search(self) -> None:
+    def _initialise_new_search(self, node: SearchTreeNode) -> None:
         self._empty_children_list()
         self._initialise_temperature()
+        self.branch_root_node = node
 
     def _calculate_and_set_loyalty_rate(self, current_heuristic: float) -> None:
         if self.nodes.empty():
@@ -102,10 +103,9 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
             self.temperature = self.loyalty_rate * self.temperature
             return next_child, self.ITERATIONS_INCREMENT
         else:
-            self._initialise_new_search()
-
             best_node: SearchTreeNode
             best_heuristic, best_node = self.nodes.get()
+            self._initialise_new_search(best_node)
             self._calculate_and_set_loyalty_rate(best_heuristic)
 
             return best_node
