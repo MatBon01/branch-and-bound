@@ -15,20 +15,24 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
         seed: int = 1234567890,
         initial_temperature: float = 1,
     ):
+        self.ITERATIONS_INCREMENT: int = 1
         random.seed(seed)
         self.heuristic: OrderingHeuristic = heuristic
+
         self.nodes: queue.PriorityQueue[
             tuple[float, SearchTreeNode]
         ] = queue.PriorityQueue()
-        self.last_children: queue.PriorityQueue[tuple[float, SearchTreeNode]] = []
-        self.ITERATIONS_INCREMENT: int = 1
+        self.last_children: queue.PriorityQueue[
+            tuple[float, SearchTreeNode]
+        ] = queue.PriorityQueue()
+
         self.loyalty_rate: float = -1
         self.INITIAL_TEMPERATURE: float = initial_temperature
         self.temperature: float = initial_temperature
         self.branch_root_node: SearchTreeNode = None
 
     def put(self, node: SearchTreeNode) -> None:
-        self.last_children.put((self.heuristic(node), node))
+        self.last_children.put((self.heuristic.potential(node), node))
 
     def _continue_on_branch(self) -> bool:
         if self.last_children.empty() or not self.branch_root_node:
@@ -161,4 +165,4 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
         return best_node
 
     def __len__(self) -> int:
-        return len(self.nodes) + len(self.last_children)
+        return len(self.nodes.queue) + len(self.last_children.queue)
