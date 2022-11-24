@@ -7,8 +7,7 @@ from .ordering_heuristic import OrderingHeuristic
 
 
 class LevelHeuristic(OrderingHeuristic):
-    def __init__(self, level_modifier: Callable[[int], float]=id):
-        super().__init__()
+    def __init__(self, level_modifier: Callable[[int], float] = id):
         self.level_modifier = level_modifier
 
     def potential(self, node: SearchTreeNode) -> float:
