@@ -15,6 +15,8 @@ class LevelHeuristic(OrderingHeuristic):
 
 
 def reciprocal(num: int) -> float:
+    if num == 0:
+        return 0
     return 1.0 / float(num)
 
 
