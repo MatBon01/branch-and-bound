@@ -1,16 +1,19 @@
 import logging
 import queue
+from typing import Optional
 
 from ..search_tree.search_tree_node import SearchTreeNode
 from .search_tree_explorer import SearchTreeExplorer
 
 
 class DepthFirstSearch(SearchTreeExplorer):
-    def __init__(self, one_depth=False):
+    def __init__(self, one_depth: bool = False):
         logging.info("Using DepthFirstSearch Search Tree Explorer")
-        self.order: queue.PriorityQueue[SearchTreeNode] = queue.PriorityQueue()
+        self.order: queue.PriorityQueue[
+            tuple[int, SearchTreeNode]
+        ] = queue.PriorityQueue()
         self.one_depth: bool = one_depth
-        self.last_node: SearchTreeNode = None
+        self.last_node: Optional[SearchTreeNode] = None
         self.ITERATIONS_INCREMENT: int = 1
         self.min_solution_time: int = -1
 
@@ -54,3 +57,6 @@ class DepthFirstSearch(SearchTreeExplorer):
     def best(self) -> SearchTreeNode:
         node, _ = self.next()
         return node
+
+    def __len__(self) -> int:
+        return len(self.order.queue)

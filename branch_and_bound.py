@@ -1,3 +1,4 @@
+import collections
 import logging
 import queue
 import sys
@@ -28,7 +29,7 @@ def main() -> None:
     brancher: BranchingPolicy = AllBranchesPolicy(jobs, bounder)
 
     start_time = time.time()
-    optimal_node, iterations, max_node_list_size = branch_and_bound(
+    optimal_node, iterations, max_node_list_size, max_branches = branch_and_bound(
         jobs, explorer, brancher
     )
     end_time = time.time()
@@ -37,6 +38,7 @@ def main() -> None:
     logging.info(optimal_node)
     logging.info("Iterations: %d", iterations)
     logging.info("Largest node list size: %d", max_node_list_size)
+    logging.info("Max branches: %d", max_branches)
 
 
 def setup_logging(
@@ -87,7 +89,7 @@ def branch_and_bound(
     max_iterations: int = 30000,
     initial_iterations: int = 0,
     initial_nodes: Optional[list[SearchTreeNode]] = None,
-) -> tuple[SearchTreeNode, int, int]:
+) -> tuple[SearchTreeNode, int, int, int]:
     if initial_nodes is None:
         nodes.put(SearchTreeNode([], jobs.exit_nodes, jobs))
     else:
@@ -98,12 +100,15 @@ def branch_and_bound(
     final_schedules: queue.PriorityQueue[SearchTreeNode] = queue.PriorityQueue()
     iteration: int = initial_iterations
     max_node_list_size: int = len(nodes)
+    max_branches: int = 0
 
     while not nodes.finished() and iteration < max_iterations:
         node, iterations_increment = nodes.next()
         logging.debug("Iteration: %d | %s", iteration, node)
 
-        for new_node in node.branch(brancher):
+        new_nodes = node.branch(brancher)
+
+        for new_node in new_nodes:
             # If the node terminates then it is a solution
             if new_node.terminated:
                 logging.debug("Found a solution")
@@ -115,6 +120,7 @@ def branch_and_bound(
         iteration += iterations_increment
 
         max_node_list_size = max(max_node_list_size, len(nodes))
+        max_branches = max(max_branches, len(new_nodes))
 
     if not final_schedules.empty():
         optimal_node = final_schedules.get()
@@ -124,7 +130,7 @@ def branch_and_bound(
             jobs, nodes.best(), brancher, iteration
         )
 
-    return optimal_node, iteration, max_node_list_size
+    return optimal_node, iteration, max_node_list_size, max_branches
 
 
 if __name__ == "__main__":

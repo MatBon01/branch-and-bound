@@ -4,12 +4,12 @@ from .graph import Job
 class JobInformation:
     def __init__(
         self,
-        processing_time: int,
+        processing_time: float,
         due_time: int,
         dependents: list[Job],
         dependencies: list[Job],
     ):
-        self._processing_time: int = processing_time
+        self._processing_time: float = processing_time
         self._due_time: int = due_time
         self._dependents: list[Job] = dependents
         self._dependencies: list[Job] = dependencies
@@ -23,7 +23,7 @@ class JobInformation:
         return self._dependencies
 
     @property
-    def processing_time(self) -> int:
+    def processing_time(self) -> float:
         return self._processing_time
 
     @property

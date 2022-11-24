@@ -8,15 +8,19 @@ from .job_information import JobInformation
 class JobDependencyGraph:
     def __init__(
         self,
-        edges: list[list[tuple[Job, Job]]],
+        edges: list[tuple[Job, Job]],
         processing_times: list[float],
         due_times: list[int],
     ):
         self.dependencies: dict[Job, list[Job]] = defaultdict(list)
+        self.job_numbers: set[Job] = set()
+
         job: Job
-        dependent_jobs: list[Job]
-        for job, dependent_jobs in edges:
-            self.dependencies[job].append(dependent_jobs)
+        dependent_job: Job
+        for job, dependent_job in edges:
+            self.dependencies[job].append(dependent_job)
+            self.job_numbers.add(job)
+            self.job_numbers.add(dependent_job)
 
         self.inverted_dependencies: dict[Job, list[Job]] = get_inverted_graph(
             self.dependencies
