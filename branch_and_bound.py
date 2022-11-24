@@ -24,7 +24,7 @@ from utils.search_tree_explorer.search_tree_explorer import SearchTreeExplorer
 def main() -> None:
     setup_logging()
     jobs: JobDependencyGraph = get_graph_with_fixed_processing_times()
-    explorer: SearchTreeExplorer = DepthFirstSearch()
+    explorer: SearchTreeExplorer = JumpTracker()
     bounder: BoundingPolicy = AllOthersOnTimePolicy()
     brancher: BranchingPolicy = AllBranchesPolicy(jobs, bounder)
 
@@ -70,7 +70,7 @@ def generate_solution_using_greedy_depth_first_search(
     search_tree_explorer: SearchTreeExplorer = DepthFirstSearch(one_depth=True)
     search_tree_explorer.put(partial_solution)
 
-    solution, extra_iterations, _ = branch_and_bound(
+    solution, extra_iterations, _, _ = branch_and_bound(
         jobs,
         search_tree_explorer,
         brancher,
