@@ -19,3 +19,6 @@ class SearchTreeExplorer:
 
     def best(self) -> SearchTreeNode:
         pass
+
+    def __len__(self) -> int:
+        return 0

@@ -128,3 +128,16 @@ links = [
 ]
 
 N = len(node_types)
+
+
+fixed_processing_times_by_type = {
+    "vii": 21.0,
+    "blur": 6.0,
+    "night": 25.0,
+    "onnx": 4.0,
+    "emboss": 2.0,
+    "muse": 17.0,
+    "wave": 13.0,
+}
+
+fixed_processing_times = [fixed_processing_times_by_type[node] for node in node_types]

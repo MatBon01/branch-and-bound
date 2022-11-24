@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from .graph import Job, due_times, links, processing_times
+from .graph import Job, due_times, links, processing_times, fixed_processing_times
 from .graph_utils import get_inverted_graph
 from .job_information import JobInformation
 
@@ -71,3 +71,7 @@ class JobDependencyGraph:
 
 def get_graph() -> JobDependencyGraph:
     return JobDependencyGraph(links, processing_times, due_times)
+
+
+def get_graph_with_fixed_processing_times() -> JobDependencyGraph:
+    return JobDependencyGraph(links, fixed_processing_times, due_times)

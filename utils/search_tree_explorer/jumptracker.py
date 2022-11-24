@@ -33,3 +33,6 @@ class JumpTracker(SearchTreeExplorer):
     def best(self) -> SearchTreeNode:
         node, _ = self.next()
         return node
+
+    def __len__(self) -> int:
+        return len(self.nodes.queue)
