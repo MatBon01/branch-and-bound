@@ -24,13 +24,21 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
         self.loyalty_rate: float = -1
         self.INITIAL_TEMPERATURE: float = initial_temperature
         self.temperature: float = initial_temperature
+        self.branch_node: SearchTreeNode = None
 
     def put(self, node: SearchTreeNode) -> None:
         self.last_children.put((self.heuristic(node), node))
 
+    def _calculate_probability_to_stay_on_branch(self) -> float:
+        # calculate the probability of continuing on this node
+        pass
+
     def _continue_on_branch(self) -> bool:
-        # TODO:: finish
-        return not self.last_children.empty()
+        probability_to_stay_on_branch: float = self._calculate_probability_to_stay_on_branch()
+        return (
+            not self.last_children.empty()
+            and random.random() < probability_to_stay_on_branch
+        )
 
     def _empty_children_list(self) -> None:
         # empty the children list
