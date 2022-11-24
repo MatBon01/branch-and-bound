@@ -19,12 +19,21 @@ from utils.search_tree.search_tree_node import SearchTreeNode
 from utils.search_tree_explorer.depth_first_search import DepthFirstSearch
 from utils.search_tree_explorer.jumptracker import JumpTracker
 from utils.search_tree_explorer.search_tree_explorer import SearchTreeExplorer
+from utils.search_tree_explorer.simulated_annealing_branch_loyalty import (
+    SimulatedAnnealingBranchLoyalty,
+)
+from utils.search_tree_explorer.ordering_heuristic.level_heuristic import (
+    LevelHeuristic,
+    reciprocal,
+)
 
 
 def main() -> None:
     setup_logging()
     jobs: JobDependencyGraph = get_graph_with_fixed_processing_times()
-    explorer: SearchTreeExplorer = JumpTracker()
+    explorer: SearchTreeExplorer = SimulatedAnnealingBranchLoyalty(
+        heuristic=LevelHeuristic(level_modifier=reciprocal)
+    )
     bounder: BoundingPolicy = AllOthersOnTimePolicy()
     brancher: BranchingPolicy = AllBranchesPolicy(jobs, bounder)
 

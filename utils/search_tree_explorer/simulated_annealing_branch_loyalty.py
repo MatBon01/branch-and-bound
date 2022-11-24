@@ -1,6 +1,7 @@
 import queue
 import random
 import math
+import logging
 
 from .search_tree_explorer import SearchTreeExplorer
 from .ordering_heuristic.ordering_heuristic import OrderingHeuristic
@@ -15,6 +16,8 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
         seed: int = 1234567890,
         initial_temperature: float = 1,
     ):
+        logging.info("Using Simulated Annealing Branch Loyalty search tree explorer")
+
         self.ITERATIONS_INCREMENT: int = 1
         random.seed(seed)
         self.heuristic: OrderingHeuristic = heuristic
@@ -109,12 +112,17 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
             self.temperature = self.loyalty_rate * self.temperature
             return next_child, self.ITERATIONS_INCREMENT
         else:
+            logging.debug("Changing the branch")
             best_node: SearchTreeNode
-            best_heuristic, best_node = self.nodes.get()
+            best_heuristic: float
+            if self.nodes.empty(): # e.g. in first round
+                best_heuristic, best_node = self.last_children.get()
+            else:
+                best_heuristic, best_node = self.nodes.get()
             self._initialise_new_search(best_node)
             self._calculate_and_set_loyalty_rate(best_heuristic)
 
-            return best_node
+            return best_node, self.ITERATIONS_INCREMENT
 
     def finished(self) -> bool:
         return self.last_children.empty() and self.nodes.empty()
