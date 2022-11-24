@@ -1,4 +1,3 @@
-import collections
 import logging
 import queue
 import sys
@@ -10,6 +9,7 @@ from utils.bounding_policy.bounding_policy import BoundingPolicy
 from utils.branching_policy.all_branches_policy import AllBranchesPolicy
 from utils.branching_policy.beam_search_policy import BeamSearchPolicy
 from utils.branching_policy.branching_policy import BranchingPolicy
+from utils.branching_policy.single_branch_policy import SingleBranchPolicy
 from utils.job_dependencies.job_dependency_graph import (
     JobDependencyGraph,
     get_graph,
@@ -18,6 +18,11 @@ from utils.job_dependencies.job_dependency_graph import (
 from utils.search_tree.search_tree_node import SearchTreeNode
 from utils.search_tree_explorer.depth_first_search import DepthFirstSearch
 from utils.search_tree_explorer.jumptracker import JumpTracker
+from utils.search_tree_explorer.ordering_heuristic.level_heuristic import (
+    LevelHeuristic,
+    exponential_reciprocal,
+    reciprocal,
+)
 from utils.search_tree_explorer.search_tree_explorer import SearchTreeExplorer
 from utils.search_tree_explorer.simulated_annealing_branch_loyalty import (
     SimulatedAnnealingBranchLoyalty,
@@ -35,7 +40,7 @@ def main() -> None:
         heuristic=LevelHeuristic(level_modifier=reciprocal)
     )
     bounder: BoundingPolicy = AllOthersOnTimePolicy()
-    brancher: BranchingPolicy = AllBranchesPolicy(jobs, bounder)
+    brancher: BranchingPolicy = BeamSearchPolicy(jobs, bounder, lambda x: 3)
 
     start_time = time.time()
     optimal_node, iterations, max_node_list_size, max_branches = branch_and_bound(
@@ -43,11 +48,35 @@ def main() -> None:
     )
     end_time = time.time()
 
-    logging.info(f"--- Finished running in {end_time - start_time}s ---")
-    logging.info(optimal_node)
-    logging.info("Iterations: %d", iterations)
-    logging.info("Largest node list size: %d", max_node_list_size)
-    logging.info("Max branches: %d", max_branches)
+    output = get_final_schedule_text(
+        optimal_node,
+        iterations,
+        max_node_list_size,
+        max_branches,
+        end_time - start_time,
+    )
+
+    logging.info(output)
+    with open("output.txt", "w") as f:
+        f.write(output)
+
+
+def get_final_schedule_text(
+    optimal_node: SearchTreeNode,
+    iterations: int,
+    max_node_list_size: int,
+    max_branches: int,
+    running_time: float,
+) -> str:
+    out: list[str] = []
+
+    out.append(f"--- Finished running in {running_time}s ---")
+    out.append(f"{optimal_node}")
+    out.append(f"Iterations: {iterations}")
+    out.append(f"Largest node list size: {max_node_list_size}")
+    out.append(f"Max branches: {max_branches}")
+
+    return "\n".join(out)
 
 
 def setup_logging(
@@ -76,12 +105,14 @@ def generate_solution_using_greedy_depth_first_search(
     logging.info("Generating trial solution from partial solution")
     # Introduce depth first search to go straight to a solution
     # Terminates as soon as a solution is found
-    search_tree_explorer: SearchTreeExplorer = DepthFirstSearch(one_depth=True)
-    search_tree_explorer.put(partial_solution)
+    explorer: SearchTreeExplorer = JumpTracker()
+    explorer.put(partial_solution)
+    bounder: BoundingPolicy = AllOthersOnTimePolicy()
+    brancher: BranchingPolicy = SingleBranchPolicy(jobs, bounder)
 
     solution, extra_iterations, _, _ = branch_and_bound(
         jobs,
-        search_tree_explorer,
+        explorer,
         brancher,
         initial_nodes=[partial_solution],
         initial_iterations=current_iteration,
@@ -136,7 +167,7 @@ def branch_and_bound(
     else:
         logging.warning("No final schedules found")
         optimal_node, iteration = generate_solution_using_greedy_depth_first_search(
-            jobs, nodes.best(), brancher, iteration
+            jobs, nodes.deepest(), brancher, iteration
         )
 
     return optimal_node, iteration, max_node_list_size, max_branches

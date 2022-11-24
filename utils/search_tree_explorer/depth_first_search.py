@@ -57,6 +57,10 @@ class DepthFirstSearch(SearchTreeExplorer):
     def best(self) -> SearchTreeNode:
         node, _ = self.next()
         return node
+    
+    def deepest(self) -> SearchTreeNode:
+        node, _ = self.next()
+        return node
 
     def __len__(self) -> int:
         return len(self.order.queue)
