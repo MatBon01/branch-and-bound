@@ -32,9 +32,7 @@ class BeamSearchPolicy(BranchingPolicy):
 
             new_candidates += self.jobs.possible_candidates(new_schedule)
 
-            new_lower_bound: float = self.bounding_policy.bound(
-                node, candidate
-            )
+            new_lower_bound: float = self.bounding_policy.bound(node, candidate)
 
             new_nodes.put(
                 SearchTreeNode(
@@ -48,7 +46,5 @@ class BeamSearchPolicy(BranchingPolicy):
 
         return [
             new_nodes.get()
-            for _ in range(
-                max(len(new_nodes.queue) - self.w(node.level), 1)
-            )
+            for _ in range(max(len(new_nodes.queue) - self.w(node.level), 1))
         ]
