@@ -39,9 +39,29 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
             old_child_pair = self.last_children.get()
             self.nodes.put(old_child_pair)
 
+    def _initialise_temperature(self) -> None:
+        # Prevents division by 0 errors
+        if self.nodes.empty() and self.last_children.empty():
+            self.temperature = self.INITIAL_TEMPERATURE
+            return
+
+        # Calculate the averages of the heuristics
+        count: int = 0
+        heuristic_sum: float = 0
+        heuristic: float
+        for heuristic, _ in self.nodes.queue:
+            heuristic_sum += heuristic
+            count += 1
+
+        for heuristic, _ in self.last_children.queue:
+            heuristic_sum += heuristic
+            count += 1
+
+        self.temperature = heuristic_sum / count
+
     def _initialise_new_search(self) -> None:
         self._empty_children_list()
-        self.temperature = self.INITIAL_TEMPERATURE
+        self._initialise_temperature()
 
     def _calculate_and_set_loyalty_rate(self, current_heuristic: float) -> None:
         if self.nodes.empty():
