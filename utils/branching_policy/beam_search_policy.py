@@ -49,6 +49,6 @@ class BeamSearchPolicy(BranchingPolicy):
         return [
             new_nodes.get()
             for _ in range(
-                max(len(new_nodes.queue) - self.w(node.level), 1)
+                min(self.w(node.level), len(new_nodes.queue))
             )
         ]
