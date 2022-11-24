@@ -1,5 +1,6 @@
 import queue
 import random
+import math
 
 from .search_tree_explorer import SearchTreeExplorer
 from .ordering_heuristic.ordering_heuristic import OrderingHeuristic
@@ -24,21 +25,29 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
         self.loyalty_rate: float = -1
         self.INITIAL_TEMPERATURE: float = initial_temperature
         self.temperature: float = initial_temperature
-        self.branch_node: SearchTreeNode = None
+        self.branch_root_node: SearchTreeNode = None
 
     def put(self, node: SearchTreeNode) -> None:
         self.last_children.put((self.heuristic(node), node))
 
-    def _calculate_probability_to_stay_on_branch(self) -> float:
-        # calculate the probability of continuing on this node
-        pass
-
     def _continue_on_branch(self) -> bool:
-        probability_to_stay_on_branch: float = self._calculate_probability_to_stay_on_branch()
-        return (
-            not self.last_children.empty()
-            and random.random() < probability_to_stay_on_branch
+        if self.last_children.empty() or not self.branch_root_node:
+            return False
+
+        best_child_node: SearchTreeNode
+        best_child_heuristic: float
+        best_child_heuristic, best_child_node = self.last_children.get()
+        self.last_children.put((best_child_heuristic, best_child_node))
+
+        # TODO:: div by 0 here
+        delta: float = max(
+            (self.branch_root_node.lower_bound - best_child_node.lower_bound)
+            / self.branch_root_node.level,
+            0,
         )
+
+        probability: float = math.exp(delta / self.temperature)
+        return random.random() < probability
 
     def _empty_children_list(self) -> None:
         # empty the children list
