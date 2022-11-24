@@ -39,7 +39,9 @@ class SimulatedAnnealingBranchLoyalty(SearchTreeExplorer):
         best_child_heuristic, best_child_node = self.last_children.get()
         self.last_children.put((best_child_heuristic, best_child_node))
 
-        # TODO:: div by 0 here
+        if self.branch_root_node.level == 0:
+            return False
+
         delta: float = max(
             (self.branch_root_node.lower_bound - best_child_node.lower_bound)
             / self.branch_root_node.level,
